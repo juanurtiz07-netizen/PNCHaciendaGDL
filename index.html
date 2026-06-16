@@ -2,895 +2,439 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ecosistema Interactivo - Producto No Conforme</title>
-    <!-- Tailwind CSS para un diseño moderno y fluido -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Captura de No Conformidades</title>
+    <!-- Tailwind CSS para diseño moderno y adaptativo -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts Inter para excelente legibilidad -->
+    <!-- Google Fonts Inter para máxima legibilidad en pantallas táctiles -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Iconos FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
-        /* Estilos de impresión para el reporte */
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            #printableReportArea, #printableReportArea * {
-                visibility: visible;
-            }
-            #printableReportArea {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-            }
-            .no-print {
-                display: none !important;
-            }
+        /* Ajuste fino para campos de formulario en tablets y móviles */
+        input, select, textarea {
+            font-size: 16px !important; /* Evita zoom automático molesto en iPhones al hacer focus */
         }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-10">
 
-    <header class="bg-slate-950 border-b border-slate-800 py-4 px-6 sticky top-0 z-50 shadow-md no-print">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+    <!-- Encabezado de la Aplicación -->
+    <header class="bg-blue-900 text-white shadow-lg sticky top-0 z-40 px-4 py-4">
+        <div class="max-w-3xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="bg-blue-600 p-2.5 rounded-lg text-white shadow-lg shadow-blue-500/20">
-                    <i class="fa-solid fa-file-shield text-xl"></i>
+                <div class="bg-white/10 p-2 rounded-lg">
+                    <i class="fa-solid fa-clipboard-check text-xl text-yellow-400"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg text-white tracking-tight">Portal de Calidad &amp; Automatización</h1>
-                    <p class="text-xs text-slate-400">Captura de Datos, Generación de Reportes e Integración SharePoint / Power Automate</p>
+                    <h1 class="font-bold text-lg leading-tight">Registro de Calidad</h1>
+                    <p class="text-xs text-blue-200">Portal de Captura Móvil para Inspectores</p>
                 </div>
             </div>
-            <div class="flex items-center gap-2">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Ecosistema Conectado
-                </span>
-                <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold py-2 px-4 rounded-lg shadow-lg shadow-blue-500/10 transition-all flex items-center gap-1.5">
-                    <i class="fa-solid fa-print"></i> Imprimir Reporte PDF
-                </button>
-            </div>
+            <span class="bg-blue-800 text-blue-200 text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> En Línea
+            </span>
         </div>
     </header>
 
-    <main class="flex-grow max-w-7xl w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        <!-- COLUMNA IZQUIERDA: Formulario de Captura de Datos (5 cols en pantallas grandes) -->
-        <section class="lg:col-span-5 flex flex-col gap-6 no-print">
-            <div class="bg-slate-950 border border-slate-800 rounded-xl p-5 shadow-xl">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-5">
-                    <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-pen-to-square text-blue-400"></i>
-                        <h2 class="font-bold text-base text-white">Formulario de Captura</h2>
-                    </div>
-                    <button onclick="cargarDatosMock()" class="text-xs bg-slate-800 hover:bg-slate-700 text-blue-400 font-medium py-1 px-2.5 rounded border border-slate-700 transition">
-                        <i class="fa-solid fa-arrows-rotate mr-1"></i> Valores de Referencia
-                    </button>
-                </div>
-
-                <form id="interactiveForm" class="space-y-5" onsubmit="handleFormSubmit(event)">
-                    <!-- Sección de Datos del Documento -->
-                    <div class="space-y-3">
-                        <h3 class="text-xs font-semibold text-blue-400 uppercase tracking-wider">Identificación básica</h3>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs text-slate-400 font-medium mb-1">Folio NCR</label>
-                                <input type="text" id="form_folio" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500 transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 font-medium mb-1">Inspector</label>
-                                <input type="text" id="form_inspector" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500 transition">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs text-slate-400 font-medium mb-1">Fecha Registro</label>
-                                <input type="date" id="form_fecha" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-blue-500 transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 font-medium mb-1">Planta</label>
-                                <input type="text" id="form_planta" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500 transition">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Datos de material -->
-                    <div class="space-y-3 pt-3 border-t border-slate-850">
-                        <h3 class="text-xs font-semibold text-blue-400 uppercase tracking-wider">1. Datos de Material y Lote</h3>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs text-slate-400 font-medium mb-1">No. de Parte</label>
-                                <input type="text" id="form_numParte" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500 transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 font-medium mb-1">Nombre / Modelo</label>
-                                <input type="text" id="form_nombreModelo" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500 transition">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs text-slate-400 font-medium mb-1">No. Lote</label>
-                                <input type="text" id="form_noLote" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500 transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 font-medium mb-1">Tipo Material</label>
-                                <input type="text" id="form_tipoMaterial" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500 transition">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs text-slate-400 font-medium mb-1">Área Detección</label>
-                                <input type="text" id="form_areaDetencion" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500 transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 font-medium mb-1">Área Responsable</label>
-                                <input type="text" id="form_areaResponsable" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500 transition">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2">
-                            <div>
-                                <label class="block text-xs text-slate-400 font-medium mb-1">Turno</label>
-                                <input type="text" id="form_turno" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500 transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 font-medium mb-1">Máq / Línea</label>
-                                <input type="text" id="form_maquinaLinea" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500 transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 font-medium mb-1">Cliente</label>
-                                <input type="text" id="form_cliente" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500 transition">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2">
-                            <div>
-                                <label class="block text-xs text-slate-400 font-medium mb-1">Factura</label>
-                                <input type="text" id="form_factura" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500 transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 font-medium mb-1">O. Compra / OT</label>
-                                <input type="text" id="form_oc" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500 transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 font-medium mb-1">Fecha Fab.</label>
-                                <input type="date" id="form_fechaFab" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-blue-500 transition">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Datos financieros y hallazgo -->
-                    <div class="space-y-3 pt-3 border-t border-slate-850">
-                        <h3 class="text-xs font-semibold text-blue-400 uppercase tracking-wider">2. Cantidades, Costos y Hallazgo</h3>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs text-slate-400 font-medium mb-1">Cantidad Total</label>
-                                <input type="number" id="form_cantTotal" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500 transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 font-medium mb-1">Cantidad Defecto</label>
-                                <input type="number" id="form_cantDefecto" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500 transition">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2">
-                            <div>
-                                <label class="block text-xs text-slate-400 font-medium mb-1">Costo Unit.</label>
-                                <input type="number" step="0.01" id="form_costoUnit" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500 transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 font-medium mb-1">Costo Total ($)</label>
-                                <input type="text" id="form_costoTotal" readonly class="w-full bg-slate-850 border border-slate-750 rounded-lg p-2 text-sm text-slate-400 cursor-not-allowed">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 font-medium mb-1">Disposición</label>
-                                <input type="text" id="form_disposicion" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500 transition">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-xs text-slate-400 font-medium mb-1">Hallazgo</label>
-                            <input type="text" id="form_hallazgo" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500 transition">
-                        </div>
-                        <div>
-                            <label class="block text-xs text-slate-400 font-medium mb-1">Especificación de Material</label>
-                            <textarea id="form_especificacion" rows="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500 transition"></textarea>
-                        </div>
-                        <div>
-                            <label class="block text-xs text-slate-400 font-medium mb-1">No Conformidad Detectada</label>
-                            <textarea id="form_noConformidad" rows="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500 transition"></textarea>
-                        </div>
-                    </div>
-
-                    <!-- Evidencia en imágenes -->
-                    <div class="space-y-3 pt-3 border-t border-slate-850">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-xs font-semibold text-blue-400 uppercase tracking-wider">3. Evidencia de Imágenes</h3>
-                            <button type="button" onclick="simularFotosDefecto()" class="text-[10px] text-amber-400 hover:text-amber-300 font-medium bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                                <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Simular fotos de caja
-                            </button>
-                        </div>
-                        
-                        <!-- Caja de entrada para archivos / cámara -->
-                        <div class="border-2 border-dashed border-slate-850 hover:border-blue-500 rounded-xl p-4 text-center cursor-pointer transition relative group">
-                            <input type="file" id="imageSelector" accept="image/*" capture="environment" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="procesarImagenesSeleccionadas(event)">
-                            <div class="flex flex-col items-center gap-1.5 py-2">
-                                <div class="bg-blue-500/10 text-blue-400 p-2.5 rounded-full group-hover:scale-110 transition duration-300">
-                                    <i class="fa-solid fa-camera text-lg"></i>
-                                </div>
-                                <span class="text-xs font-semibold text-slate-200">Subir Imágenes o Tomar Foto</span>
-                                <span class="text-[10px] text-slate-500">Haz clic para abrir tu cámara o explorador (Máx. 4)</span>
-                            </div>
-                        </div>
-
-                        <!-- Miniaturas de evidencia -->
-                        <div id="mediaPreviews" class="grid grid-cols-4 gap-2">
-                            <!-- Inyectadas dinámicamente -->
-                        </div>
-                    </div>
-
-                    <!-- Botón de Envío / Guardar -->
-                    <div class="pt-4 flex gap-2">
-                        <button type="submit" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg shadow-blue-600/10 transition-all flex items-center justify-center gap-2 text-sm">
-                            <i class="fa-solid fa-cloud-arrow-up"></i> Registrar y Actualizar Vista
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Panel de Información de Power Automate -->
-            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 shadow-lg text-xs space-y-3">
-                <div class="flex items-center gap-2 border-b border-slate-850 pb-2 mb-2 text-slate-300">
-                    <i class="fa-solid fa-gears text-indigo-400"></i>
-                    <span class="font-bold">Estructura del Payload (JSON enviado a Power Automate)</span>
-                </div>
-                <p class="text-slate-400 text-[11px]">Así es como viaja tu estructura de datos e imágenes en Base64 al disparador HTTP:</p>
-                <div class="bg-slate-900 border border-slate-800 rounded p-2.5 max-h-48 overflow-y-auto font-mono text-[10px] text-emerald-400" id="jsonPayloadMonitor">
-                    { ... esperando registro ... }
-                </div>
-            </div>
-        </section>
-
-        <!-- COLUMNA DERECHA: Pestañas de Visualización (Reporte Físico / Base de Datos) -->
-        <section class="lg:col-span-7 flex flex-col gap-4">
+    <main class="flex-grow max-w-3xl w-full mx-auto px-4 py-6">
+        <form id="ncrForm" class="space-y-6" onsubmit="enviarDatosFlow(event)">
             
-            <!-- Selector de Pestañas no-print -->
-            <div class="bg-slate-950 border border-slate-800 rounded-xl p-1.5 flex gap-1.5 no-print shadow-md">
-                <button onclick="switchTab('document')" id="btnTabDocument" class="tab-btn flex-1 py-2 px-3 rounded-lg text-xs font-semibold text-white bg-slate-800 flex items-center justify-center gap-2 transition duration-200">
-                    <i class="fa-solid fa-file-pdf text-red-400"></i> Vista Previa del Reporte Físico (image_dd0664.png)
-                </button>
-                <button onclick="switchTab('excel')" id="btnTabExcel" class="tab-btn flex-1 py-2 px-3 rounded-lg text-xs font-semibold text-slate-400 hover:text-white flex items-center justify-center gap-2 transition duration-200">
-                    <i class="fa-solid fa-file-excel text-emerald-400"></i> Vista de Base de Datos (image_dd0702.png)
-                </button>
+            <!-- TARJETA 1: DATOS DE CONTROL -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+                <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
+                    <i class="fa-solid fa-barcode text-blue-900 text-lg"></i>
+                    <h2 class="font-bold text-slate-900 text-base">Identificación del Reporte</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Folio NCR <span class="text-red-500">*</span></label>
+                        <input type="text" id="folio" required placeholder="Ej: 26A-107-180" 
+                               class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all focus:ring-2 focus:ring-blue-100 outline-none font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Inspector Autorizado <span class="text-red-500">*</span></label>
+                        <input type="text" id="inspector" required placeholder="Nombre del Inspector" 
+                               class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all focus:ring-2 focus:ring-blue-100 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Fecha de Registro <span class="text-red-500">*</span></label>
+                        <input type="date" id="fecha" required 
+                               class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all focus:ring-2 focus:ring-blue-100 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Planta de Producción</label>
+                        <select id="planta" class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all focus:ring-2 focus:ring-blue-100 outline-none">
+                            <option value="HACIENDA">HACIENDA</option>
+                            <option value="PLANTA_2">PLANTA 2</option>
+                            <option value="PLANTA_3">PLANTA 3</option>
+                        </select>
+                    </div>
+                </div>
             </div>
 
-            <!-- PESTAÑA A: Reporte No Conforme (Réplica de image_dd0664.png) -->
-            <div id="tabContentDocument" class="tab-panel space-y-4">
-                <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 no-print flex items-center justify-between shadow-sm">
-                    <div class="text-xs text-slate-400 flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse"></span>
-                        Este módulo replica el diseño de la imagen <span class="font-mono text-blue-300 bg-slate-900 px-1.5 py-0.5 rounded">image_dd0664.png</span>. ¡Modifica el formulario para verlo cambiar!
-                    </div>
-                    <span class="text-[10px] text-slate-500 bg-slate-900 py-1 px-2 rounded font-mono">Formato Físico</span>
+            <!-- TARJETA 2: DATOS DEL MATERIAL Y PROCESO -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+                <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
+                    <i class="fa-solid fa-boxes-stacked text-blue-900 text-lg"></i>
+                    <h2 class="font-bold text-slate-900 text-base">1. Datos Generales de Material</h2>
                 </div>
 
-                <!-- Contenedor del documento con estilo de hoja impresa en blanco -->
-                <div id="printableReportArea" class="bg-white text-black p-6 md:p-10 rounded-xl shadow-2xl border border-slate-200 overflow-x-auto min-w-[700px]">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">No. de Parte <span class="text-red-500">*</span></label>
+                        <input type="text" id="numParte" required placeholder="Ej: CAJARSC 511X435X187MM" 
+                               class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all focus:ring-2 focus:ring-blue-100 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Nombre / Modelo del Producto</label>
+                        <input type="text" id="nombreModelo" placeholder="Ej: 3803-MTL" 
+                               class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all focus:ring-2 focus:ring-blue-100 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">No. de Lote</label>
+                        <input type="text" id="noLote" placeholder="Ej: OPEN, 4022, etc." 
+                               class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all focus:ring-2 focus:ring-blue-100 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Tipo de Material</label>
+                        <input type="text" id="tipoMaterial" value="CARTON" placeholder="Ej: CARTON" 
+                               class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all focus:ring-2 focus:ring-blue-100 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Área de Detección</label>
+                        <input type="text" id="areaDetencion" placeholder="Ej: LINEA o INCOMING" 
+                               class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all focus:ring-2 focus:ring-blue-100 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Área Responsable / Proveedor <span class="text-red-500">*</span></label>
+                        <input type="text" id="areaResponsable" required placeholder="Ej: PAPELCOR" 
+                               class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all focus:ring-2 focus:ring-blue-100 outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3 pt-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Turno</label>
+                        <select id="turno" class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all outline-none">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Máquina / Línea</label>
+                        <input type="text" id="maquinaLinea" placeholder="Ej: 0" 
+                               class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Cliente</label>
+                        <input type="text" id="cliente" placeholder="Ej: CIENA" 
+                               class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Factura de Referencia</label>
+                        <input type="text" id="factura" placeholder="Ej: 16089" 
+                               class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">O. Compra / Trabajo</label>
+                        <input type="text" id="oc" placeholder="Ej: 403368" 
+                               class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Fecha de Recepción</label>
+                        <input type="date" id="fechaFab" 
+                               class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- TARJETA 3: CANTIDADES, COSTOS Y DESCRIPCIÓN -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+                <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
+                    <i class="fa-solid fa-calculator text-blue-900 text-lg"></i>
+                    <h2 class="font-bold text-slate-900 text-base">2. Descripción e Impacto de la Falla</h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Cantidad Total Lote <span class="text-red-500">*</span></label>
+                        <input type="number" id="cantTotal" required placeholder="Ej: 4505" 
+                               class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Cantidad Defectuosa <span class="text-red-500">*</span></label>
+                        <input type="number" id="cantDefecto" required placeholder="Ej: 168" oninput="calcularCostoTotal()"
+                               class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Costo Unitario ($)</label>
+                        <input type="number" step="0.01" id="costoUnitario" placeholder="Ej: 4.00" oninput="calcularCostoTotal()"
+                               class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Costo Total del Defecto (Auto)</label>
+                        <div class="relative">
+                            <span class="absolute left-3.5 top-3.5 text-slate-400 font-semibold text-sm">$</span>
+                            <input type="text" id="costoTotal" readonly placeholder="0.00" 
+                                   class="w-full bg-slate-100 border border-slate-300 rounded-xl p-3 pl-8 text-sm text-slate-600 font-bold cursor-not-allowed outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Disposición Recomendada</label>
+                        <input type="text" id="disposicion" value="SCRAP" placeholder="Ej: SCRAP" 
+                               class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all outline-none">
+                    </div>
+                </div>
+
+                <div class="space-y-3 pt-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Tipo de Hallazgo / Defecto <span class="text-red-500">*</span></label>
+                        <input type="text" id="hallazgo" required placeholder="Ej: DESCUADRADAS / DAÑADAS / DESLAMINADAS" 
+                               class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Especificación de Material</label>
+                        <textarea id="especificacion" rows="2" placeholder="Ej: EL MATERIAL DEBE DE VENIR EN BUEN ESTADO" 
+                                  class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all outline-none resize-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">No Conformidad Detectada</label>
+                        <textarea id="noConformidad" rows="2" placeholder="Ej: GAP / VERSION DIFERENTE" 
+                                  class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all outline-none resize-none"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TARJETA 4: CAPTURA FOTOGRÁFICA DESDE DISPOSITIVO -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-camera-retro text-blue-900 text-lg"></i>
+                        <h2 class="font-bold text-slate-900 text-base">3. Evidencia Fotográfica de Calidad</h2>
+                    </div>
+                    <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">Máximo 4 imágenes</span>
+                </div>
+
+                <!-- Botón de apertura de cámara -->
+                <div class="relative border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-2xl p-6 text-center bg-slate-50 hover:bg-slate-100/50 transition-all cursor-pointer group">
+                    <input type="file" id="cameraInput" accept="image/*" capture="environment" multiple 
+                           class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="procesarFotos(event)">
                     
-                    <!-- TABLA ENCABEZADO -->
-                    <table class="w-full border-2 border-black collapse-borders text-sm font-sans mb-3">
-                        <tbody>
-                            <tr>
-                                <td class="border border-black p-4 text-center font-extrabold text-2xl tracking-wider uppercase font-sans w-3/4" style="font-family: Arial, sans-serif;">
-                                    REPORTE DE PRODUCTO NO CONFORME
-                                </td>
-                                <td class="border border-black p-4 text-center text-xl font-bold uppercase w-1/4" style="background-color: #ffffff;">
-                                    Sello
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <!-- TABLA METADATOS BÁSICOS -->
-                    <table class="w-full border-x-2 border-b-2 border-black text-xs font-sans mb-4">
-                        <tbody>
-                            <tr class="align-middle">
-                                <td class="p-2 border border-black font-bold uppercase text-right w-[15%]" style="background-color: #f2f2f2;">Inspector:</td>
-                                <td class="p-2 border border-black font-semibold text-center w-[30%]" id="view_inspector" style="background-color: #FFF2CC;">DANIEL</td>
-                                <td class="p-2 border border-black font-bold uppercase text-right w-[12%]" style="background-color: #f2f2f2;">Fecha:</td>
-                                <td class="p-2 border border-black font-semibold text-center w-[18%]" id="view_fecha" style="background-color: #FFF2CC;">16/06/2026</td>
-                                <td class="p-2 border border-black font-bold uppercase text-right w-[10%]" style="background-color: #f2f2f2;">Folio:</td>
-                                <td class="p-2 border border-black font-bold text-center text-sm w-[15%]" id="view_folio" style="border: 2px solid #000; font-family: monospace;">26A-107-180</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <!-- SECCIÓN 1: DATOS GENERALES -->
-                    <div class="border-2 border-black bg-neutral-400 text-center text-xs font-bold py-1 uppercase mb-0" style="background-color: #A6A6A6; border-bottom: none;">
-                        1. DATOS GENERALES
+                    <div class="flex flex-col items-center gap-2">
+                        <div class="bg-blue-100 text-blue-900 p-4 rounded-full group-hover:scale-105 transition-transform">
+                            <i class="fa-solid fa-camera text-2xl"></i>
+                        </div>
+                        <span class="text-sm font-bold text-slate-800">Tomar Foto o Cargar Imagen</span>
+                        <p class="text-xs text-slate-400">Si estás en tableta/móvil, abrirá directamente la cámara integrada.</p>
                     </div>
-                    <table class="w-full border-2 border-black text-[11px] font-sans mb-4">
-                        <tbody>
-                            <tr>
-                                <td class="p-1.5 border border-black font-bold w-[25%]" style="background-color: #f2f2f2;">Planta:</td>
-                                <td class="p-1.5 border border-black text-center font-bold text-blue-900 w-[25%]" id="view_planta" style="background-color: #B4C6E7;">HACIENDA</td>
-                                <td class="p-1.5 border border-black font-bold w-[25%]" style="background-color: #f2f2f2;">Turno:</td>
-                                <td class="p-1.5 border border-black text-center w-[25%]" id="view_turno" style="background-color: #FFF2CC;">1</td>
-                            </tr>
-                            <tr>
-                                <td class="p-1.5 border border-black font-bold" style="background-color: #f2f2f2;">No. de Parte:</td>
-                                <td class="p-1.5 border border-black text-center" id="view_numParte" style="background-color: #FFF2CC;">CAJARSC 511X435X187MM</td>
-                                <td class="p-1.5 border border-black font-bold" style="background-color: #f2f2f2;">Máquina / Línea:</td>
-                                <td class="p-1.5 border border-black text-center" id="view_maquinaLinea" style="background-color: #FFF2CC;">0</td>
-                            </tr>
-                            <tr>
-                                <td class="p-1.5 border border-black font-bold" style="background-color: #f2f2f2;">Nombre / Modelo:</td>
-                                <td class="p-1.5 border border-black text-center" id="view_nombreModelo" style="background-color: #FFF2CC;">3803-MTL</td>
-                                <td class="p-1.5 border border-black font-bold" style="background-color: #f2f2f2;">Cliente / Proyecto:</td>
-                                <td class="p-1.5 border border-black text-center" id="view_cliente" style="background-color: #FFF2CC;">CIENA</td>
-                            </tr>
-                            <tr>
-                                <td class="p-1.5 border border-black font-bold" style="background-color: #f2f2f2;">No. Lote:</td>
-                                <td class="p-1.5 border border-black text-center" id="view_noLote" style="background-color: #FFF2CC;">OPEN</td>
-                                <td class="p-1.5 border border-black font-bold" style="background-color: #f2f2f2;">Factura:</td>
-                                <td class="p-1.5 border border-black text-center" id="view_factura" style="background-color: #FFF2CC;">16089</td>
-                            </tr>
-                            <tr>
-                                <td class="p-1.5 border border-black font-bold" style="background-color: #f2f2f2;">Tipo de Material:</td>
-                                <td class="p-1.5 border border-black text-center" id="view_tipoMaterial" style="background-color: #FFF2CC;">CARTON</td>
-                                <td class="p-1.5 border border-black font-bold" style="background-color: #f2f2f2;">Ord. de Trabajo / Ord. de Compra:</td>
-                                <td class="p-1.5 border border-black text-center" id="view_oc" style="background-color: #FFF2CC;">403368</td>
-                            </tr>
-                            <tr>
-                                <td class="p-1.5 border border-black font-bold" style="background-color: #f2f2f2;">Área de detección:</td>
-                                <td class="p-1.5 border border-black text-center" id="view_areaDetencion" style="background-color: #FFF2CC;">LINEA</td>
-                                <td class="p-1.5 border border-black font-bold" style="background-color: #f2f2f2;">Fecha de fabricación / recepción:</td>
-                                <td class="p-1.5 border border-black text-center" id="view_fechaFab" style="background-color: #FFF2CC;">13/06/2026</td>
-                            </tr>
-                            <tr>
-                                <td class="p-1.5 border border-black font-bold" style="background-color: #f2f2f2;">Área Responsable:</td>
-                                <td class="p-1.5 border border-black text-center" id="view_areaResponsable" style="background-color: #FFF2CC;">PAPELCOR</td>
-                                <td class="p-1.5 border border-black font-bold" style="background-color: #f2f2f2;">Cantidad total:</td>
-                                <td class="p-1.5 border border-black text-center" id="view_cantTotal" style="background-color: #FFF2CC;">4,505</td>
-                            </tr>
-                            <tr>
-                                <td class="p-1.5 border border-black font-bold" style="background-color: #f2f2f2;">Proveedor Responsable:</td>
-                                <td class="p-1.5 border border-black text-center font-bold text-blue-900" id="view_proveedor" style="background-color: #B4C6E7;">PAPELCOR</td>
-                                <td class="p-1.5 border border-black font-bold" style="background-color: #f2f2f2;">Cantidad con defecto:</td>
-                                <td class="p-1.5 border border-black text-center" id="view_cantDefecto" style="background-color: #FFF2CC;">168</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                </div>
 
-                    <!-- SECCIÓN 2: DESCRIPCIÓN DE LA NO CONFORMIDAD -->
-                    <div class="border-2 border-black bg-neutral-400 text-center text-xs font-bold py-1 uppercase mb-0" style="background-color: #A6A6A6; border-bottom: none;">
-                        2. DESCRIPCIÓN DE LA NO CONFORMIDAD
-                    </div>
-                    <table class="w-full border-2 border-black text-xs font-sans mb-4">
-                        <tbody>
-                            <tr>
-                                <td colspan="3" class="p-2.5 border-b border-black font-bold" style="background-color: #FFF2CC;">
-                                    Hallazgo: &nbsp;<span class="font-semibold text-neutral-800 text-[11px]" id="view_hallazgo">DESCUADRADAS/DAÑADAS/DESLAMINADAS/CONTAMINADAS</span>
-                                </td>
-                            </tr>
-                            <tr class="text-center font-bold" style="background-color: #E6E6E6;">
-                                <td class="p-1.5 border border-black w-1/3 text-[10px]">Especificación:</td>
-                                <td class="p-1.5 border border-black w-1/3 text-[10px]">No conformidad:</td>
-                                <td class="p-1.5 border border-black w-1/3 text-[10px]">Costo e Impacto:</td>
-                            </tr>
-                            <tr>
-                                <td class="p-3 border border-black h-24 valign-top text-left text-[11px] leading-relaxed" id="view_especificacion">
-                                    EL MATERIAL DEBE DE VENIR EN BUEN ESTADO
-                                </td>
-                                <td class="p-3 border border-black h-24 valign-top text-left text-[11px] leading-relaxed" id="view_noConformidad">
-                                    GAP/VERSION DIFERENTE
-                                </td>
-                                <td class="p-3 border border-black h-24 valign-top text-left text-[11px] leading-relaxed space-y-1">
-                                    <div><strong>Costo Unitario:</strong> $<span id="view_costoUnit">4.00</span></div>
-                                    <div><strong>Costo Total:</strong> $<span id="view_costoTotal">672.00</span></div>
-                                    <div><strong>Disposición:</strong> <span class="bg-red-100 text-red-800 px-1 rounded text-[10px] font-bold" id="view_disposicion">SCRAP</span></div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <!-- SECCIÓN 3: IMAGEN -->
-                    <div class="border-2 border-black bg-neutral-400 text-center text-xs font-bold py-1 uppercase mb-0" style="background-color: #A6A6A6; border-bottom: none;">
-                        IMAGEN EVIDENCIA
-                    </div>
-                    <table class="w-full border-2 border-black">
-                        <tbody>
-                            <tr>
-                                <td class="p-2">
-                                    <div id="view_images_grid" class="grid grid-cols-4 gap-2 w-full">
-                                        <!-- Caja 1 -->
-                                        <div class="border border-neutral-300 rounded flex flex-col items-center justify-center bg-neutral-50 p-1 min-h-[160px]">
-                                            <span class="text-[10px] text-neutral-400">Imagen 1</span>
-                                        </div>
-                                        <!-- Caja 2 -->
-                                        <div class="border border-neutral-300 rounded flex flex-col items-center justify-center bg-neutral-50 p-1 min-h-[160px]">
-                                            <span class="text-[10px] text-neutral-400">Imagen 2</span>
-                                        </div>
-                                        <!-- Caja 3 -->
-                                        <div class="border border-neutral-300 rounded flex flex-col items-center justify-center bg-neutral-50 p-1 min-h-[160px]">
-                                            <span class="text-[10px] text-neutral-400">Imagen 3</span>
-                                        </div>
-                                        <!-- Caja 4 -->
-                                        <div class="border border-neutral-300 rounded flex flex-col items-center justify-center bg-neutral-50 p-1 min-h-[160px]">
-                                            <span class="text-[10px] text-neutral-400">Imagen 4</span>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <!-- Grid de previsualización -->
+                <div id="photoGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                    <!-- Vacío por defecto, inyectado por JS -->
                 </div>
             </div>
 
-            <!-- PESTAÑA B: Vista de Excel / Base de Datos (Recreación de image_dd0702.png) -->
-            <div id="tabContentExcel" class="tab-panel hidden space-y-4">
-                <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex items-center justify-between shadow-sm">
-                    <div class="text-xs text-slate-400 flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        Este módulo representa la base de datos de Excel o Lista de SharePoint (<span class="font-mono text-emerald-300 bg-slate-900 px-1.5 py-0.5 rounded">image_dd0702.png</span>) alimentada por Power Automate.
-                    </div>
-                    <span class="text-[10px] text-slate-500 bg-slate-900 py-1 px-2 rounded font-mono">Vista Tabla</span>
-                </div>
+            <!-- Botón Final de Envío -->
+            <button type="submit" id="btnSubmit" 
+                    class="w-full bg-blue-900 hover:bg-blue-800 text-white font-extrabold py-4 px-6 rounded-2xl shadow-lg shadow-blue-900/10 transition-all flex items-center justify-center gap-2 text-base active:scale-[0.99]">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Guardar Registro y Enviar a SharePoint
+            </button>
 
-                <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 shadow-xl overflow-x-auto">
-                    <div class="min-w-[1200px]">
-                        <table class="w-full text-[11px] text-left border-collapse">
-                            <thead>
-                                <tr class="bg-blue-800 text-white font-semibold border border-blue-900">
-                                    <th class="p-2 border border-blue-700 whitespace-nowrap">FOLIO</th>
-                                    <th class="p-2 border border-blue-700 whitespace-nowrap">SEMANA Y/O MES</th>
-                                    <th class="p-2 border border-blue-700 whitespace-nowrap">INSPECTOR</th>
-                                    <th class="p-2 border border-blue-700 whitespace-nowrap">NUMERO DE PARTE</th>
-                                    <th class="p-2 border border-blue-700 whitespace-nowrap">NOMBRE MODELO</th>
-                                    <th class="p-2 border border-blue-700 whitespace-nowrap">CANT TOTAL</th>
-                                    <th class="p-2 border border-blue-700 whitespace-nowrap">CANT CON DEFECTO</th>
-                                    <th class="p-2 border border-blue-700 whitespace-nowrap">TIPO DE HALLAZGO</th>
-                                    <th class="p-2 border border-blue-700 whitespace-nowrap">NO CONFORMIDAD</th>
-                                    <th class="p-2 border border-blue-700 whitespace-nowrap">TIPO DE MATERIAL</th>
-                                    <th class="p-2 border border-blue-700 whitespace-nowrap">AREA DE DETENCION</th>
-                                    <th class="p-2 border border-blue-700 whitespace-nowrap">AREA RESPONSABLE</th>
-                                    <th class="p-2 border border-blue-700 whitespace-nowrap">TURNO</th>
-                                    <th class="p-2 border border-blue-700 whitespace-nowrap">MAQUINA LINEA</th>
-                                    <th class="p-2 border border-blue-700 whitespace-nowrap">CLIENTE</th>
-                                    <th class="p-2 border border-blue-700 whitespace-nowrap">COSTO UNITARIO</th>
-                                    <th class="p-2 border border-blue-700 whitespace-nowrap">COSTO TOTAL</th>
-                                    <th class="p-2 border border-blue-700 whitespace-nowrap">DISPOSICION</th>
-                                    <th class="p-2 border border-blue-700 whitespace-nowrap">STATUS</th>
-                                    <th class="p-2 border border-blue-700 whitespace-nowrap">FECHA</th>
-                                </tr>
-                            </thead>
-                            <tbody id="dbTableBody" class="divide-y divide-slate-800 text-slate-300">
-                                <!-- Filas inyectadas por JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </section>
+        </form>
     </main>
 
-    <footer class="bg-slate-950 border-t border-slate-850 py-4 px-6 text-center text-xs text-slate-500 no-print">
-        <p>© 2026 Portal de Calidad Automatizado. Desarrollado para sincronización inmediata con Microsoft Power Automate.</p>
-    </footer>
+    <!-- MODAL CUSTOM DE STATUS (En sustitución de alert/confirm prohibidos) -->
+    <div id="statusModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 text-center space-y-4 animate-scaleUp">
+            <div id="modalIconContainer" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto">
+                <i id="modalIcon" class="text-2xl"></i>
+            </div>
+            <div>
+                <h3 id="modalTitle" class="font-extrabold text-lg text-slate-900"></h3>
+                <p id="modalMessage" class="text-sm text-slate-500 mt-2 leading-relaxed"></p>
+            </div>
+            <button onclick="cerrarStatusModal()" class="w-full bg-slate-900 hover:bg-slate-850 text-white font-bold py-3 rounded-xl transition text-sm">
+                Entendido
+            </button>
+        </div>
+    </div>
 
     <script>
-        // Array de registros de prueba (Inicializado con los de la base de datos de image_dd0702.png)
-        let dbRecords = [
-            {
-                folio: "26A-107-001",
-                semana_mes: "Enero",
-                inspector: "ELIZABETH",
-                numParte: "CAJA RSC 816X573X179MM",
-                nombreModelo: "55-103675-02",
-                cantTotal: 1200,
-                cantDefecto: 123,
-                hallazgo: "DESCUADRE",
-                noConformidad: "DEFECTO",
-                tipoMaterial: "CARTON",
-                areaDetencion: "LINEA",
-                areaResponsable: "PAPELCOR",
-                turno: "1",
-                maquinaLinea: "1",
-                cliente: "CISCO",
-                costoUnitario: 3.63,
-                costoTotal: 447.08,
-                disposicion: "SCRAP",
-                status: "CLOSED",
-                fecha: "2026-02-27"
-            },
-            {
-                folio: "26A-107-002",
-                semana_mes: "Enero",
-                inspector: "ELIZABETH",
-                numParte: "CAJA RSC 816X573X179MM",
-                nombreModelo: "55-103675-02",
-                cantTotal: 1200,
-                cantDefecto: 125,
-                hallazgo: "DESLAMINADO",
-                noConformidad: "DEFECTO",
-                tipoMaterial: "CARTON",
-                areaDetencion: "INCOMING",
-                areaResponsable: "PAPELCOR",
-                turno: "1",
-                maquinaLinea: "N/A",
-                cliente: "CISCO",
-                costoUnitario: 3.63,
-                costoTotal: 454.35,
-                disposicion: "SCRAP",
-                status: "CLOSED",
-                fecha: "2026-02-27"
-            },
-            {
-                folio: "26A-107-003",
-                semana_mes: "Enero",
-                inspector: "ELIZABETH",
-                numParte: "CAJA RSC 816X573X179MM",
-                nombreModelo: "55-103675-02",
-                cantTotal: 1200,
-                cantDefecto: 112,
-                hallazgo: "ROTO Y DESPEGADO",
-                noConformidad: "DEFECTO",
-                tipoMaterial: "CARTON",
-                areaDetencion: "LINEA",
-                areaResponsable: "PAPELCOR",
-                turno: "1",
-                maquinaLinea: "1",
-                cliente: "CISCO",
-                costoUnitario: 3.63,
-                costoTotal: 407.10,
-                disposicion: "SCRAP",
-                status: "CLOSED",
-                fecha: "2026-02-27"
-            }
-        ];
+        // IMPORTANTE: Reemplazar esta URL con la que te genera Power Automate en tu disparador HTTP
+        const POWER_AUTOMATE_FLOW_URL = "https://default964fdeccd06947b7af4cc2db28b728.cd.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2085237027f942eb8605bdeb50159401/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=UK9DTZBk3pfz-B2axbWNSR4KItIzpGG1qDZDcHNDjvQ";
+        
+        let fotosBase64 = [];
 
-        // Lista de imágenes cargadas (en Base64)
-        let loadedImages = [];
-
-        // Inicializador en ventana lista
+        // Inicializar fecha al día de hoy para agilizar captura
         window.onload = function() {
-            cargarDatosMock();
-            renderDatabaseTable();
-            escucharCambiosCalculo();
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('fecha').value = hoy;
+            document.getElementById('fechaFab').value = hoy;
         };
 
-        // Carga de información inicial inspirada en "image_dd0664.png"
-        function cargarDatosMock() {
-            document.getElementById('form_folio').value = "26A-107-180";
-            document.getElementById('form_inspector').value = "DANIEL";
-            document.getElementById('form_fecha').value = "2026-06-16";
-            document.getElementById('form_planta').value = "HACIENDA";
-            document.getElementById('form_numParte').value = "CAJARSC 511X435X187MM";
-            document.getElementById('form_nombreModelo').value = "3803-MTL";
-            document.getElementById('form_noLote').value = "OPEN";
-            document.getElementById('form_tipoMaterial').value = "CARTON";
-            document.getElementById('form_areaDetencion').value = "LINEA";
-            document.getElementById('form_areaResponsable').value = "PAPELCOR";
-            document.getElementById('form_turno').value = "1";
-            document.getElementById('form_maquinaLinea').value = "0";
-            document.getElementById('form_cliente').value = "CIENA";
-            document.getElementById('form_factura').value = "16089";
-            document.getElementById('form_oc').value = "403368";
-            document.getElementById('form_fechaFab').value = "2026-06-13";
-            document.getElementById('form_cantTotal').value = 4505;
-            document.getElementById('form_cantDefecto').value = 168;
-            document.getElementById('form_costoUnit').value = 4.00;
-            document.getElementById('form_disposicion').value = "SCRAP";
-            document.getElementById('form_hallazgo').value = "DESCUADRADAS/DAÑADAS/DESLAMINADAS/CONTAMINADAS";
-            document.getElementById('form_especificacion').value = "EL MATERIAL DEBE DE VENIR EN BUEN ESTADO";
-            document.getElementById('form_noConformidad').value = "GAP/VERSION DIFERENTE";
-
-            simularFotosDefecto();
-            recalcularCostoTotal();
-            sincronizarVistaDocumento();
-        }
-
-        function escucharCambiosCalculo() {
-            const inputs = ['form_cantDefecto', 'form_costoUnit', 'form_folio', 'form_inspector', 'form_fecha', 'form_planta', 'form_numParte', 'form_nombreModelo', 'form_noLote', 'form_tipoMaterial', 'form_areaDetencion', 'form_areaResponsable', 'form_turno', 'form_maquinaLinea', 'form_cliente', 'form_factura', 'form_oc', 'form_fechaFab', 'form_cantTotal', 'form_disposicion', 'form_hallazgo', 'form_especificacion', 'form_noConformidad'];
-            
-            inputs.forEach(id => {
-                const element = document.getElementById(id);
-                if (element) {
-                    element.addEventListener('input', () => {
-                        if (id === 'form_cantDefecto' || id === 'form_costoUnit') {
-                            recalcularCostoTotal();
-                        }
-                        sincronizarVistaDocumento();
-                    });
-                }
-            });
-        }
-
-        function recalcularCostoTotal() {
-            const cant = parseInt(document.getElementById('form_cantDefecto').value) || 0;
-            const unit = parseFloat(document.getElementById('form_costoUnit').value) || 0;
+        // Calcula el costo total al vuelo
+        function calcularCostoTotal() {
+            const cant = parseInt(document.getElementById('cantDefecto').value) || 0;
+            const unit = parseFloat(document.getElementById('costoUnitario').value) || 0;
             const total = cant * unit;
-            document.getElementById('form_costoTotal').value = total.toFixed(2);
+            document.getElementById('costoTotal').value = total.toFixed(2);
         }
 
-        function sincronizarVistaDocumento() {
-            document.getElementById('view_folio').innerText = document.getElementById('form_folio').value || "S/F";
-            document.getElementById('view_inspector').innerText = (document.getElementById('form_inspector').value || "S/I").toUpperCase();
-            
-            // Ajuste de formato de fecha
-            const fRaw = document.getElementById('form_fecha').value;
-            document.getElementById('view_fecha').innerText = fRaw ? formatearFecha(fRaw) : "S/F";
-
-            document.getElementById('view_planta').innerText = (document.getElementById('form_planta').value || "---").toUpperCase();
-            document.getElementById('view_turno').innerText = document.getElementById('form_turno').value || "---";
-            document.getElementById('view_numParte').innerText = (document.getElementById('form_numParte').value || "---").toUpperCase();
-            document.getElementById('view_maquinaLinea').innerText = document.getElementById('form_maquinaLinea').value || "---";
-            document.getElementById('view_nombreModelo').innerText = (document.getElementById('form_nombreModelo').value || "---").toUpperCase();
-            document.getElementById('view_cliente').innerText = (document.getElementById('form_cliente').value || "---").toUpperCase();
-            document.getElementById('view_noLote').innerText = (document.getElementById('form_noLote').value || "---").toUpperCase();
-            document.getElementById('view_factura').innerText = document.getElementById('form_factura').value || "---";
-            document.getElementById('view_tipoMaterial').innerText = (document.getElementById('form_tipoMaterial').value || "---").toUpperCase();
-            document.getElementById('view_oc').innerText = document.getElementById('form_oc').value || "---";
-            document.getElementById('view_areaDetencion').innerText = (document.getElementById('form_areaDetencion').value || "---").toUpperCase();
-            
-            const fFabRaw = document.getElementById('form_fechaFab').value;
-            document.getElementById('view_fechaFab').innerText = fFabRaw ? formatearFecha(fFabRaw) : "---";
-
-            document.getElementById('view_areaResponsable').innerText = (document.getElementById('form_areaResponsable').value || "---").toUpperCase();
-            document.getElementById('view_cantTotal').innerText = separarMiles(document.getElementById('form_cantTotal').value || 0);
-            document.getElementById('view_proveedor').innerText = (document.getElementById('form_areaResponsable').value || "---").toUpperCase();
-            document.getElementById('view_cantDefecto').innerText = separarMiles(document.getElementById('form_cantDefecto').value || 0);
-
-            document.getElementById('view_hallazgo').innerText = (document.getElementById('form_hallazgo').value || "---").toUpperCase();
-            document.getElementById('view_especificacion').innerText = (document.getElementById('form_especificacion').value || "---").toUpperCase();
-            document.getElementById('view_noConformidad').innerText = (document.getElementById('form_noConformidad').value || "---").toUpperCase();
-
-            const cUnitValue = parseFloat(document.getElementById('form_costoUnit').value) || 0;
-            const cTotalValue = parseFloat(document.getElementById('form_costoTotal').value) || 0;
-            document.getElementById('view_costoUnit').innerText = cUnitValue.toFixed(2);
-            document.getElementById('view_costoTotal').innerText = cTotalValue.toFixed(2);
-            document.getElementById('view_disposicion').innerText = (document.getElementById('form_disposicion').value || "SCRAP").toUpperCase();
-
-            actualizarMonitorJSON();
-        }
-
-        function formatearFecha(strFecha) {
-            if(!strFecha) return "";
-            const partes = strFecha.split('-');
-            if(partes.length === 3) {
-                return `${partes[2]}/${partes[1]}/${partes[0]}`;
-            }
-            return strFecha;
-        }
-
-        function separarMiles(valor) {
-            return Number(valor).toLocaleString('en-US');
-        }
-
-        function procesarImagenesSeleccionadas(event) {
+        // Procesa las imágenes tomadas o cargadas y las convierte a Base64
+        function procesarFotos(event) {
             const files = event.target.files;
             if (!files.length) return;
 
-            // Procesar un máximo de 4 imágenes
-            const limit = Math.min(files.length, 4);
-            loadedImages = []; // Limpiamos anteriores
+            // Restringir a un máximo de 4 evidencias fotográficas
+            const limiteCarga = Math.min(files.length, 4 - fotosBase64.length);
+            
+            if (fotosBase64.length >= 4) {
+                mostrarStatusModal("Límite Alcanzado", "Solo se permite adjuntar un máximo de 4 fotografías de evidencia por reporte.", "error");
+                return;
+            }
 
-            for (let i = 0; i < limit; i++) {
+            for (let i = 0; i < limiteCarga; i++) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const base64Data = e.target.result;
-                    loadedImages.push(base64Data);
-                    renderImagenes();
-                    sincronizarVistaDocumento();
-                }
+                    const base64String = e.target.result;
+                    fotosBase64.push(base64String);
+                    actualizarGridEvidencias();
+                };
                 reader.readAsDataURL(files[i]);
             }
         }
 
-        // Simulación de imágenes realistas (cajas con imperfecciones de Unsplash)
-        function simularFotosDefecto() {
-            loadedImages = [
-                "https://images.unsplash.com/photo-1595079676339-1534801ad6cf?auto=format&fit=crop&q=80&w=200", // Caja rota
-                "https://images.unsplash.com/photo-1530587191325-3db32d826c18?auto=format&fit=crop&q=80&w=200", // Esquinas dañadas
-                "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&q=80&w=200"  // Texturas de cartón
-            ];
-            renderImagenes();
-            sincronizarVistaDocumento();
-        }
+        // Dibuja en pantalla la lista de evidencias agregadas
+        function actualizarGridEvidencias() {
+            const grid = document.getElementById('photoGrid');
+            grid.innerHTML = "";
 
-        function renderImagenes() {
-            const previewsContainer = document.getElementById('mediaPreviews');
-            const documentGrid = document.getElementById('view_images_grid');
-            
-            previewsContainer.innerHTML = "";
-            documentGrid.innerHTML = "";
-
-            // Renderizar miniaturas en panel de formulario
-            loadedImages.forEach((imgSrc, index) => {
-                const badge = document.createElement('div');
-                badge.className = "relative group h-14 rounded-lg overflow-hidden border border-slate-700 bg-slate-900";
-                badge.innerHTML = `
-                    <img src="${imgSrc}" class="w-full h-full object-cover">
-                    <button type="button" onclick="eliminarImagen(${index})" class="absolute inset-0 bg-red-600/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-150">
-                        <i class="fa-solid fa-trash-can text-xs"></i>
+            fotosBase64.forEach((src, index) => {
+                const item = document.createElement('div');
+                item.className = "relative rounded-xl overflow-hidden aspect-square border border-slate-200 group bg-slate-100 shadow-inner";
+                item.innerHTML = `
+                    <img src="${src}" class="w-full h-full object-cover">
+                    <button type="button" onclick="eliminarFoto(${index})" 
+                            class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full shadow-md transition-all active:scale-95 flex items-center justify-center">
+                        <i class="fa-solid fa-trash text-xs"></i>
                     </button>
                 `;
-                previewsContainer.appendChild(badge);
+                grid.appendChild(item);
             });
-
-            // Renderizar en la plantilla del documento imprimible (4 cajas estrictas)
-            for (let i = 0; i < 4; i++) {
-                const box = document.createElement('div');
-                box.className = "border border-neutral-300 rounded flex flex-col items-center justify-center bg-neutral-50 p-1 min-h-[160px]";
-                
-                if (loadedImages[i]) {
-                    box.innerHTML = `<img src="${loadedImages[i]}" class="w-full h-36 object-cover rounded shadow-inner">`;
-                } else {
-                    box.innerHTML = `
-                        <div class="text-center p-3 text-neutral-300">
-                            <i class="fa-solid fa-image text-2xl mb-1 text-neutral-200"></i>
-                            <div class="text-[9px] uppercase font-semibold text-neutral-400">Sin Evidencia ${i+1}</div>
-                        </div>
-                    `;
-                }
-                documentGrid.appendChild(box);
-            }
         }
 
-        function eliminarImagen(index) {
-            loadedImages.splice(index, 1);
-            renderImagenes();
-            sincronizarVistaDocumento();
+        // Eliminar foto seleccionada
+        function eliminarFoto(index) {
+            fotosBase64.splice(index, 1);
+            actualizarGridEvidencias();
         }
 
-        function handleFormSubmit(event) {
+        // Envía el paquete de datos estructurados a la llamada de automatización
+        async function enviarDatosFlow(event) {
             event.preventDefault();
-
-            // Guardar registro actual en el simulador de base de datos
-            const fVal = document.getElementById('form_fecha').value;
-            const mNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-            const mesStr = fVal ? mNames[new Date(fVal).getMonth()] : "N/A";
-
-            const nuevoRegistro = {
-                folio: document.getElementById('form_folio').value,
-                semana_mes: mesStr,
-                inspector: document.getElementById('form_inspector').value.toUpperCase(),
-                numParte: document.getElementById('form_numParte').value.toUpperCase(),
-                nombreModelo: document.getElementById('form_nombreModelo').value.toUpperCase(),
-                cantTotal: parseInt(document.getElementById('form_cantTotal').value) || 0,
-                cantDefecto: parseInt(document.getElementById('form_cantDefecto').value) || 0,
-                hallazgo: document.getElementById('form_hallazgo').value.toUpperCase(),
-                noConformidad: document.getElementById('form_noConformidad').value.toUpperCase() || "DEFECTO",
-                tipoMaterial: document.getElementById('form_tipoMaterial').value.toUpperCase(),
-                areaDetencion: document.getElementById('form_areaDetencion').value.toUpperCase(),
-                areaResponsable: document.getElementById('form_areaResponsable').value.toUpperCase(),
-                turno: document.getElementById('form_turno').value,
-                maquinaLinea: document.getElementById('form_maquinaLinea').value || "N/A",
-                cliente: document.getElementById('form_cliente').value.toUpperCase(),
-                costoUnitario: parseFloat(document.getElementById('form_costoUnit').value) || 0,
-                costoTotal: parseFloat(document.getElementById('form_costoTotal').value) || 0,
-                disposicion: document.getElementById('form_disposicion').value.toUpperCase() || "SCRAP",
-                status: "OPEN",
-                fecha: fVal
-            };
-
-            // Insertar al inicio de la tabla
-            dbRecords.unshift(nuevoRegistro);
-            renderDatabaseTable();
+            const btn = document.getElementById('btnSubmit');
             
-            // Simular notificación
-            const modal = document.createElement('div');
-            modal.className = "fixed inset-x-4 top-4 md:left-auto md:right-4 md:w-96 bg-slate-900 border border-emerald-500/30 p-4 rounded-xl shadow-2xl z-50 flex gap-3 animate-bounce no-print";
-            modal.innerHTML = `
-                <div class="bg-emerald-500/10 text-emerald-400 p-2.5 rounded-lg h-fit">
-                    <i class="fa-solid fa-circle-check text-lg"></i>
-                </div>
-                <div>
-                    <h4 class="font-bold text-sm text-white">¡Automatización Simulada!</h4>
-                    <p class="text-xs text-slate-400 mt-1">Los datos se agregaron al simulador de base de datos. Se generó el JSON y se emitió la petición al disparador de Power Automate.</p>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            setTimeout(() => modal.remove(), 4500);
+            // Bloquear botón para evitar múltiple click
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin"></i> Guardando información...`;
 
-            // Cambiar automáticamente a la pestaña de base de datos para ver el nuevo registro
-            switchTab('excel');
-        }
+            // Preparación limpia de Base64 para Power Automate (solo el string de datos)
+            const imagenesLimpias = fotosBase64.map(src => src.split(',')[1]);
 
-        function renderDatabaseTable() {
-            const tbody = document.getElementById('dbTableBody');
-            tbody.innerHTML = "";
-
-            dbRecords.forEach(rec => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-900 border-b border-slate-850 text-[11px] align-middle";
-                tr.innerHTML = `
-                    <td class="p-2 border border-slate-800 font-mono font-semibold text-blue-400">${rec.folio}</td>
-                    <td class="p-2 border border-slate-800">${rec.semana_mes}</td>
-                    <td class="p-2 border border-slate-800 font-semibold">${rec.inspector}</td>
-                    <td class="p-2 border border-slate-800 max-w-[150px] truncate" title="${rec.numParte}">${rec.numParte}</td>
-                    <td class="p-2 border border-slate-800 font-mono text-slate-400">${rec.nombreModelo}</td>
-                    <td class="p-2 border border-slate-800 text-right">${separarMiles(rec.cantTotal)}</td>
-                    <td class="p-2 border border-slate-800 text-right text-amber-400 font-semibold">${separarMiles(rec.cantDefecto)}</td>
-                    <td class="p-2 border border-slate-800 max-w-[150px] truncate" title="${rec.hallazgo}">${rec.hallazgo}</td>
-                    <td class="p-2 border border-slate-800 text-slate-500 font-semibold text-[9px]"><span class="bg-slate-800 px-1 py-0.5 rounded">${rec.noConformidad}</span></td>
-                    <td class="p-2 border border-slate-800">${rec.tipoMaterial}</td>
-                    <td class="p-2 border border-slate-800">${rec.areaDetencion}</td>
-                    <td class="p-2 border border-slate-800">${rec.areaResponsable}</td>
-                    <td class="p-2 border border-slate-800 text-center">${rec.turno}</td>
-                    <td class="p-2 border border-slate-800 text-center">${rec.maquinaLinea}</td>
-                    <td class="p-2 border border-slate-800 font-bold text-slate-400">${rec.cliente}</td>
-                    <td class="p-2 border border-slate-800 text-right">$${rec.costoUnitario.toFixed(2)}</td>
-                    <td class="p-2 border border-slate-800 text-right text-emerald-400 font-bold">$${rec.costoTotal.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
-                    <td class="p-2 border border-slate-800 text-center"><span class="bg-red-500/10 text-red-400 border border-red-500/20 px-1.5 py-0.5 rounded font-bold text-[9px]">${rec.disposicion}</span></td>
-                    <td class="p-2 border border-slate-800 text-center">
-                        <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${rec.status === 'CLOSED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}">
-                            ${rec.status}
-                        </span>
-                    </td>
-                    <td class="p-2 border border-slate-800 text-slate-400 font-mono">${formatearFecha(rec.fecha)}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function actualizarMonitorJSON() {
-            const cleanImages = loadedImages.map(img => img.startsWith("data:") ? img.split(',')[1].substring(0, 30) + "...[Base64 Cortado para Monitor]" : img);
-            const mockPayload = {
-                folio: document.getElementById('form_folio').value,
-                inspector: document.getElementById('form_inspector').value,
-                fecha: document.getElementById('form_fecha').value,
-                planta: document.getElementById('form_planta').value,
-                numParte: document.getElementById('form_numParte').value,
-                nombreModelo: document.getElementById('form_nombreModelo').value,
-                noLote: document.getElementById('form_noLote').value,
-                tipoMaterial: document.getElementById('form_tipoMaterial').value,
-                areaDetencion: document.getElementById('form_areaDetencion').value,
-                areaResponsable: document.getElementById('form_areaResponsable').value,
-                turno: document.getElementById('form_turno').value,
-                maquinaLinea: document.getElementById('form_maquinaLinea').value,
-                cliente: document.getElementById('form_cliente').value,
-                factura: document.getElementById('form_factura').value,
-                oc: document.getElementById('form_oc').value,
-                fechaFab: document.getElementById('form_fechaFab').value,
-                cantTotal: document.getElementById('form_cantTotal').value,
-                cantDefecto: document.getElementById('form_cantDefecto').value,
-                costoUnitario: document.getElementById('form_costoUnit').value,
-                costoTotal: document.getElementById('form_costoTotal').value,
-                disposicion: document.getElementById('form_disposicion').value,
-                hallazgo: document.getElementById('form_hallazgo').value,
-                especificacion: document.getElementById('form_especificacion').value,
-                noConformidad: document.getElementById('form_noConformidad').value,
-                imagenes: cleanImages
+            const payload = {
+                folio: document.getElementById('folio').value,
+                inspector: document.getElementById('inspector').value.toUpperCase(),
+                fecha: document.getElementById('fecha').value,
+                planta: document.getElementById('planta').value,
+                numParte: document.getElementById('numParte').value.toUpperCase(),
+                nombreModelo: document.getElementById('nombreModelo').value.toUpperCase(),
+                noLote: document.getElementById('noLote').value.toUpperCase(),
+                tipoMaterial: document.getElementById('tipoMaterial').value.toUpperCase(),
+                areaDetencion: document.getElementById('areaDetencion').value.toUpperCase(),
+                areaResponsable: document.getElementById('areaResponsable').value.toUpperCase(),
+                turno: document.getElementById('turno').value,
+                maquinaLinea: document.getElementById('maquinaLinea').value,
+                cliente: document.getElementById('cliente').value.toUpperCase(),
+                factura: document.getElementById('factura').value,
+                oc: document.getElementById('oc').value,
+                fechaFab: document.getElementById('fechaFab').value,
+                cantTotal: document.getElementById('cantTotal').value,
+                cantDefecto: document.getElementById('cantDefecto').value,
+                costoUnitario: document.getElementById('costoUnitario').value || "0",
+                costoTotal: document.getElementById('costoTotal').value || "0",
+                disposicion: document.getElementById('disposicion').value.toUpperCase(),
+                hallazgo: document.getElementById('hallazgo').value.toUpperCase(),
+                especificacion: document.getElementById('especificacion').value,
+                noConformidad: document.getElementById('noConformidad').value,
+                imagenes: imagenesLimpias // Envía array de Base64 limpios
             };
 
-            document.getElementById('jsonPayloadMonitor').innerText = JSON.stringify(mockPayload, null, 2);
+            try {
+                const response = await fetch(POWER_AUTOMATE_FLOW_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    mostrarStatusModal("Registro Exitoso", "La no conformidad ha sido guardada en la base de datos de SharePoint y se ha generado el reporte correctamente.", "success");
+                    document.getElementById('ncrForm').reset();
+                    fotosBase64 = [];
+                    actualizarGridEvidencias();
+                    // Reiniciar fechas al día actual
+                    const hoy = new Date().toISOString().split('T')[0];
+                    document.getElementById('fecha').value = hoy;
+                    document.getElementById('fechaFab').value = hoy;
+                } else {
+                    mostrarStatusModal("Error de Envío", "Hubo un problema al procesar el reporte con el servidor. Valida la conexión de Power Automate.", "error");
+                }
+            } catch (error) {
+                console.error(error);
+                mostrarStatusModal("Falla de Red", "No se pudo establecer comunicación con el servidor. Comprueba tu conexión a internet.", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Guardar Registro y Enviar a SharePoint`;
+            }
         }
 
-        function switchTab(tabId) {
-            const tabDoc = document.getElementById('tabContentDocument');
-            const tabExcel = document.getElementById('tabContentExcel');
-            const btnDoc = document.getElementById('btnTabDocument');
-            const btnExcel = document.getElementById('btnTabExcel');
+        // Control de ventanas emergentes (Modales)
+        function mostrarStatusModal(titulo, mensaje, tipo) {
+            const modal = document.getElementById('statusModal');
+            const iconContainer = document.getElementById('modalIconContainer');
+            const icon = document.getElementById('modalIcon');
+            const titleEl = document.getElementById('modalTitle');
+            const messageEl = document.getElementById('modalMessage');
 
-            if (tabId === 'document') {
-                tabDoc.classList.remove('hidden');
-                tabExcel.classList.add('hidden');
-                btnDoc.classList.add('bg-slate-800', 'text-white');
-                btnDoc.classList.remove('text-slate-400');
-                btnExcel.classList.remove('bg-slate-800', 'text-white');
-                btnExcel.classList.add('text-slate-400');
+            titleEl.innerText = titulo;
+            messageEl.innerText = mensaje;
+
+            if (tipo === "success") {
+                iconContainer.className = "w-16 h-16 rounded-full flex items-center justify-center mx-auto bg-emerald-100 text-emerald-600";
+                icon.className = "fa-solid fa-circle-check text-3xl";
             } else {
-                tabDoc.classList.add('hidden');
-                tabExcel.classList.remove('hidden');
-                btnExcel.classList.add('bg-slate-800', 'text-white');
-                btnExcel.classList.remove('text-slate-400');
-                btnDoc.classList.remove('bg-slate-800', 'text-white');
-                btnDoc.classList.add('text-slate-400');
-                renderDatabaseTable();
+                iconContainer.className = "w-16 h-16 rounded-full flex items-center justify-center mx-auto bg-rose-100 text-rose-600";
+                icon.className = "fa-solid fa-circle-exclamation text-3xl";
             }
+
+            modal.classList.remove('hidden');
+        }
+
+        function cerrarStatusModal() {
+            document.getElementById('statusModal').classList.add('hidden');
         }
     </script>
 </body>
