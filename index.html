@@ -15,9 +15,9 @@
             font-family: 'Inter', sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
-        /* Ajuste fino para campos de formulario en tablets y móviles */
+        /* Evita zoom automático molesto en dispositivos móviles */
         input, select, textarea {
-            font-size: 16px !important; /* Evita zoom automático molesto en iPhones al hacer focus */
+            font-size: 16px !important;
         }
     </style>
 </head>
@@ -54,8 +54,16 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Folio NCR <span class="text-red-500">*</span></label>
-                        <input type="text" id="folio" required placeholder="Ej: 26A-107-180" 
-                               class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all focus:ring-2 focus:ring-blue-100 outline-none font-mono">
+                        <!-- Campo de Folio Rediseñado (Prefijo fijo + 3 dígitos táctiles) -->
+                        <div class="flex shadow-sm rounded-xl overflow-hidden border border-slate-300 focus-within:ring-2 focus-within:ring-blue-100 focus-within:border-blue-500 transition-all">
+                            <span class="bg-slate-100 px-3.5 flex items-center text-slate-500 font-mono font-bold text-sm border-r border-slate-200 select-none">
+                                26A-107-
+                            </span>
+                            <input type="number" id="folioSecuencia" required placeholder="180" min="1" max="999"
+                                   oninput="if(this.value.length > 3) this.value = this.value.slice(0, 3);"
+                                   class="w-full bg-slate-50 p-3 text-sm focus:bg-white outline-none font-mono font-bold text-slate-800">
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1">Escribe únicamente los últimos 3 dígitos secuenciales.</p>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Inspector Autorizado <span class="text-red-500">*</span></label>
@@ -218,7 +226,7 @@
                 </div>
             </div>
 
-            <!-- TARJETA 4: CAPTURA FOTOGRÁFICA DESDE DISPOSITIVO -->
+            <!-- TARJETA 4: CAPTURA FOTOGRÁFICA -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
                 <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                     <div class="flex items-center gap-2">
@@ -244,7 +252,7 @@
 
                 <!-- Grid de previsualización -->
                 <div id="photoGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                    <!-- Vacío por defecto, inyectado por JS -->
+                    <!-- Inyectado dinámicamente -->
                 </div>
             </div>
 
@@ -257,7 +265,7 @@
         </form>
     </main>
 
-    <!-- MODAL CUSTOM DE STATUS (En sustitución de alert/confirm prohibidos) -->
+    <!-- MODAL CUSTOM DE STATUS -->
     <div id="statusModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 text-center space-y-4 animate-scaleUp">
             <div id="modalIconContainer" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto">
@@ -274,19 +282,19 @@
     </div>
 
     <script>
-        // IMPORTANTE: Reemplazar esta URL con la que te genera Power Automate en tu disparador HTTP
+        // Enlace del webhook de tu flujo de Power Automate
         const POWER_AUTOMATE_FLOW_URL = "https://default964fdeccd06947b7af4cc2db28b728.cd.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2085237027f942eb8605bdeb50159401/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=UK9DTZBk3pfz-B2axbWNSR4KItIzpGG1qDZDcHNDjvQ";
         
         let fotosBase64 = [];
 
-        // Inicializar fecha al día de hoy para agilizar captura
+        // Iniciar fechas al día actual
         window.onload = function() {
             const hoy = new Date().toISOString().split('T')[0];
             document.getElementById('fecha').value = hoy;
             document.getElementById('fechaFab').value = hoy;
         };
 
-        // Calcula el costo total al vuelo
+        // Calcular costo total
         function calcularCostoTotal() {
             const cant = parseInt(document.getElementById('cantDefecto').value) || 0;
             const unit = parseFloat(document.getElementById('costoUnitario').value) || 0;
@@ -294,38 +302,36 @@
             document.getElementById('costoTotal').value = total.toFixed(2);
         }
 
-        // Procesa las imágenes tomadas o cargadas y las convierte a Base64
+        // Procesar imágenes tomadas
         function procesarFotos(event) {
             const files = event.target.files;
             if (!files.length) return;
 
-            // Restringir a un máximo de 4 evidencias fotográficas
             const limiteCarga = Math.min(files.length, 4 - fotosBase64.length);
             
             if (fotosBase64.length >= 4) {
-                mostrarStatusModal("Límite Alcanzado", "Solo se permite adjuntar un máximo de 4 fotografías de evidencia por reporte.", "error");
+                mostrarStatusModal("Límite Alcanzado", "Solo se permite adjuntar un máximo de 4 fotografías por reporte.", "error");
                 return;
             }
 
             for (let i = 0; i < limiteCarga; i++) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const base64String = e.target.result;
-                    fotosBase64.push(base64String);
+                    fotosBase64.push(e.target.result);
                     actualizarGridEvidencias();
                 };
                 reader.readAsDataURL(files[i]);
             }
         }
 
-        // Dibuja en pantalla la lista de evidencias agregadas
+        // Actualizar visualizador táctil de imágenes
         function actualizarGridEvidencias() {
             const grid = document.getElementById('photoGrid');
             grid.innerHTML = "";
 
             fotosBase64.forEach((src, index) => {
                 const item = document.createElement('div');
-                item.className = "relative rounded-xl overflow-hidden aspect-square border border-slate-200 group bg-slate-100 shadow-inner";
+                item.className = "relative rounded-xl overflow-hidden aspect-square border border-slate-200 bg-slate-100 shadow-inner";
                 item.innerHTML = `
                     <img src="${src}" class="w-full h-full object-cover">
                     <button type="button" onclick="eliminarFoto(${index})" 
@@ -337,26 +343,28 @@
             });
         }
 
-        // Eliminar foto seleccionada
         function eliminarFoto(index) {
             fotosBase64.splice(index, 1);
             actualizarGridEvidencias();
         }
 
-        // Envía el paquete de datos estructurados a la llamada de automatización
+        // Enviar datos consolidados a Power Automate
         async function enviarDatosFlow(event) {
             event.preventDefault();
             const btn = document.getElementById('btnSubmit');
             
-            // Bloquear botón para evitar múltiple click
             btn.disabled = true;
             btn.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin"></i> Guardando información...`;
 
-            // Preparación limpia de Base64 para Power Automate (solo el string de datos)
+            // Construir folio con formato estándar: 26A-107-XXX (rellenar ceros si es menor a 3 dígitos)
+            const secuenciaInput = document.getElementById('folioSecuencia').value;
+            const secuenciaFormateada = secuenciaInput.padStart(3, '0');
+            const folioCompleto = `26A-107-${secuenciaFormateada}`;
+
             const imagenesLimpias = fotosBase64.map(src => src.split(',')[1]);
 
             const payload = {
-                folio: document.getElementById('folio').value,
+                folio: folioCompleto, // Se envía el folio completo tal cual lo espera el Excel y el SharePoint
                 inspector: document.getElementById('inspector').value.toUpperCase(),
                 fecha: document.getElementById('fecha').value,
                 planta: document.getElementById('planta').value,
@@ -380,7 +388,7 @@
                 hallazgo: document.getElementById('hallazgo').value.toUpperCase(),
                 especificacion: document.getElementById('especificacion').value,
                 noConformidad: document.getElementById('noConformidad').value,
-                imagenes: imagenesLimpias // Envía array de Base64 limpios
+                imagenes: imagenesLimpias
             };
 
             try {
@@ -391,27 +399,26 @@
                 });
 
                 if (response.ok) {
-                    mostrarStatusModal("Registro Exitoso", "La no conformidad ha sido guardada en la base de datos de SharePoint y se ha generado el reporte correctamente.", "success");
+                    mostrarStatusModal("Registro Exitoso", `Reporte de folio ${folioCompleto} guardado y enviado a SharePoint correctamente.`, "success");
                     document.getElementById('ncrForm').reset();
                     fotosBase64 = [];
                     actualizarGridEvidencias();
-                    // Reiniciar fechas al día actual
+                    
                     const hoy = new Date().toISOString().split('T')[0];
                     document.getElementById('fecha').value = hoy;
                     document.getElementById('fechaFab').value = hoy;
                 } else {
-                    mostrarStatusModal("Error de Envío", "Hubo un problema al procesar el reporte con el servidor. Valida la conexión de Power Automate.", "error");
+                    mostrarStatusModal("Error de Envío", "Hubo un problema al procesar el reporte en Power Automate.", "error");
                 }
             } catch (error) {
                 console.error(error);
-                mostrarStatusModal("Falla de Red", "No se pudo establecer comunicación con el servidor. Comprueba tu conexión a internet.", "error");
+                mostrarStatusModal("Falla de Red", "No se pudo conectar con el servidor. Valida tu conexión a internet.", "error");
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Guardar Registro y Enviar a SharePoint`;
             }
         }
 
-        // Control de ventanas emergentes (Modales)
         function mostrarStatusModal(titulo, mensaje, tipo) {
             const modal = document.getElementById('statusModal');
             const iconContainer = document.getElementById('modalIconContainer');
