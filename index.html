@@ -54,7 +54,6 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Folio NCR <span class="text-red-500">*</span></label>
-                        <!-- Campo de Folio Rediseñado (Prefijo fijo + 3 dígitos táctiles) -->
                         <div class="flex shadow-sm rounded-xl overflow-hidden border border-slate-300 focus-within:ring-2 focus-within:ring-blue-100 focus-within:border-blue-500 transition-all">
                             <span class="bg-slate-100 px-3.5 flex items-center text-slate-500 font-mono font-bold text-sm border-r border-slate-200 select-none">
                                 26-107-
@@ -79,8 +78,8 @@
                         <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Planta de Producción</label>
                         <select id="planta" class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all focus:ring-2 focus:ring-blue-100 outline-none">
                             <option value="HACIENDA">HACIENDA</option>
-                            <option value="PLANTA_2">PLANTA 2</option>
-                            <option value="PLANTA_3">PLANTA 3</option>
+                            <option value="LEAÑO">LEAÑO</option>
+                            <option value="ALMACÉN VALLARTA">ALMACÉN VALLARTA</option>
                         </select>
                     </div>
                 </div>
@@ -166,7 +165,7 @@
                 </div>
             </div>
 
-            <!-- TARJETA 3: CANTIDADES, COSTOS Y DESCRIPCIÓN -->
+            <!-- TARJETA 3: CANTIDADES Y DESCRIPCIÓN -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
                 <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
                     <i class="fa-solid fa-calculator text-blue-900 text-lg"></i>
@@ -181,24 +180,8 @@
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Cantidad Defectuosa <span class="text-red-500">*</span></label>
-                        <input type="number" id="cantDefecto" required placeholder="Ej: 168" oninput="calcularCostoTotal()"
+                        <input type="number" id="cantDefecto" required placeholder="Ej: 168"
                                class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Costo Unitario ($)</label>
-                        <input type="number" step="0.01" id="costoUnitario" placeholder="Ej: 4.00" oninput="calcularCostoTotal()"
-                               class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl p-3 text-sm transition-all outline-none">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Costo Total del Defecto (Auto)</label>
-                        <div class="relative">
-                            <span class="absolute left-3.5 top-3.5 text-slate-400 font-semibold text-sm">$</span>
-                            <input type="text" id="costoTotal" readonly placeholder="0.00" 
-                                   class="w-full bg-slate-100 border border-slate-300 rounded-xl p-3 pl-8 text-sm text-slate-600 font-bold cursor-not-allowed outline-none">
-                        </div>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Disposición Recomendada</label>
@@ -282,8 +265,8 @@
     </div>
 
     <script>
-        // Enlace del webhook de tu flujo de Power Automate
-        const POWER_AUTOMATE_FLOW_URL = "https://default964fdeccd06947b7af4cc2db28b728.cd.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2085237027f942eb8605bdeb50159401/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=UK9DTZBk3pfz-B2axbWNSR4KItIzpGG1qDZDcHNDjvQ";
+        // Enlace de Power Automate proporcionado
+        const POWER_AUTOMATE_FLOW_URL = "https://default964fdeccd06947b7af4cc2db28b728.cd.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/26/workflows/2085237027f942eb8605bdeb50159401/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=UK9DTZBk3pfz-B2axbWNSR4KItIzpGG1qDZDcHNDjvQ";
         
         let fotosBase64 = [];
 
@@ -293,14 +276,6 @@
             document.getElementById('fecha').value = hoy;
             document.getElementById('fechaFab').value = hoy;
         };
-
-        // Calcular costo total
-        function calcularCostoTotal() {
-            const cant = parseInt(document.getElementById('cantDefecto').value) || 0;
-            const unit = parseFloat(document.getElementById('costoUnitario').value) || 0;
-            const total = cant * unit;
-            document.getElementById('costoTotal').value = total.toFixed(2);
-        }
 
         // Procesar imágenes tomadas
         function procesarFotos(event) {
@@ -348,7 +323,7 @@
             actualizarGridEvidencias();
         }
 
-        // Enviar datos consolidados a Power Automate
+        // Enviar datos consolidados a Power Automate (Sin costo unitario/total)
         async function enviarDatosFlow(event) {
             event.preventDefault();
             const btn = document.getElementById('btnSubmit');
@@ -356,7 +331,7 @@
             btn.disabled = true;
             btn.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin"></i> Guardando información...`;
 
-            // Construir folio con formato estándar: 26A-107-XXX (rellenar ceros si es menor a 3 dígitos)
+            // Construir folio con formato estándar
             const secuenciaInput = document.getElementById('folioSecuencia').value;
             const secuenciaFormateada = secuenciaInput.padStart(3, '0');
             const folioCompleto = `26A-107-${secuenciaFormateada}`;
@@ -364,7 +339,7 @@
             const imagenesLimpias = fotosBase64.map(src => src.split(',')[1]);
 
             const payload = {
-                folio: folioCompleto, // Se envía el folio completo tal cual lo espera el Excel y el SharePoint
+                folio: folioCompleto, 
                 inspector: document.getElementById('inspector').value.toUpperCase(),
                 fecha: document.getElementById('fecha').value,
                 planta: document.getElementById('planta').value,
@@ -382,8 +357,6 @@
                 fechaFab: document.getElementById('fechaFab').value,
                 cantTotal: document.getElementById('cantTotal').value,
                 cantDefecto: document.getElementById('cantDefecto').value,
-                costoUnitario: document.getElementById('costoUnitario').value || "0",
-                costoTotal: document.getElementById('costoTotal').value || "0",
                 disposicion: document.getElementById('disposicion').value.toUpperCase(),
                 hallazgo: document.getElementById('hallazgo').value.toUpperCase(),
                 especificacion: document.getElementById('especificacion').value,
